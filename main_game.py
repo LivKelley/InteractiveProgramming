@@ -7,6 +7,7 @@ mif = 'arrow-small-right.png'
 
 WIDTH = 500
 HEIGHT = 500
+END_TIME = 10
 
 
 class model(object):
@@ -17,6 +18,17 @@ class model(object):
         self.ball3 = ball3
         self.pacman = pacman
         self.point = point
+        self.clock = pygame.time.Clock
+        self.running = True
+
+
+    def run_time(self): 
+        game_time = pygame.time.get_ticks()/1000
+        t = END_TIME - game_time
+        if game_time > END_TIME: 
+            self.running = False
+            t = 0 
+        return t
 
     def update(self):
         # self.ball = ball #sets the ball equal to the equation that defines it
@@ -27,7 +39,11 @@ class model(object):
         self.ball.update(self.pacman) #Updates each character each round (?)
         self.ball2.update(self.pacman)
         self.ball3.update(self.pacman)
-
+        # self.run_time.update(self.pacman)
+        if not self.running:
+            screen.fill(255, 0, 0)
+            pass
+            #put game over case here
 
 class pacman(object):
     """ This is our pacman who dies from ghosts and eats balls!"""
@@ -58,20 +74,6 @@ class ball (object):
             #POINTS_EARNED = POINTS_EARNED + int(self.value)
             model.point = model.point + int(self.value)
 
-
-#class point(object):
-#    """ this is what you earn when you collect the point rectangle :)"""
-#    def __init__ (self,number):
-#        self.number = number # Making an initial number.
-#        self.ball = ball
-#    def add_point(self):
-#        self.number = self.number + 1 #Adding to this
-#        #(and making a function out of it so we can use it later independently of the class.)
-#        return self.number # do I need to return this
-#    def show(self):
-#        point_string = str(self.number)
-#        return point_string
-
 class game_controller (object):
     def __init__(self,model):
         self.model = model #Creating a model. (What's that? Just an overarching structure?)
@@ -96,7 +98,6 @@ class game_controller (object):
                     model.pacman.y = model.pacman.y
                 else:
                     model.pacman.y = model.pacman.y - 10 #For example, going up is going in a positive direction in the y axis (by 1 for 1 press of the key.)
-
 
             if event.key == pygame.K_DOWN:
                 if model.pacman.y == HEIGHT:
@@ -129,10 +130,14 @@ class pygameview (object):
     def draw(self):
         """ Draw the game to the pygame window """
         # draw all the bricks to the screen
-        self.screen.fill(pygame.Color('white'))
-        background = pygame.Surface(screen.get_size()) #this is just making a surface because we have to do this uncool thing called blitting to make the text show
-        background = background.convert() #increases speed
-        background.fill((255, 255, 255)) #needs to match color
+        if not model.running:
+            screen.fill(255,0,0)
+            pass
+        else: 
+            self.screen.fill(pygame.Color('white'))
+            background = pygame.Surface(screen.get_size()) #this is just making a surface because we have to do this uncool thing called blitting to make the text show
+            background = background.convert() #increases speed
+            background.fill((255, 255, 255)) #needs to match color
 
         #This sequence draws pacman onto the screen with the dimensions we gave earlier.
 
@@ -169,7 +174,14 @@ class pygameview (object):
         background.blit(text, textpos)
         screen.blit(background, (0, 0))
 
+        #Display timer (Also adapted from: #http://www.pygame.org/docs/tut/tom/games2.html)
 
+        font = pygame.font.Font(None, 36)
+        text = font.render(str(model.run_time()), 1, (0, 0, 0))
+        textpos = text.get_rect()
+        textpos.centerx = WIDTH - 400 
+        background.blit(text, textpos)
+        screen.blit(background, (0,0))
 
         pygame.display.update()
 
@@ -177,8 +189,11 @@ if __name__ == '__main__':
     """ Provides a view of the pacman model in a pygame window """
     # This part starts the display and loads the background.
     pygame.init()
+    pygame.time.Clock() 
+    pygame.time.get_ticks() 
     pygame.key.set_repeat(50, 50) #https://sivasantosh.wordpress.com/2012/07/18/keyboard-event-handling-pygame/
     # pygame.display.init()
+    pygame
 
     screen = pygame.display.set_mode([WIDTH,HEIGHT]) #Starting the display using bif and mif
     # background = pygame.image.load(bif).convert()
@@ -204,11 +219,6 @@ if __name__ == '__main__':
         model.update()
         view.draw() 
         time.sleep(.001) #todo: initialize all locations of pacman, ball AND make something appropriate happen when pacman eats a ball
-
-    # def __init__(self, model, size):
-    #     """ Initialize with the specified model """
-    #     self.model = model
-    #     self.screen = pygame.display.set_mode(size)
 
 
 
